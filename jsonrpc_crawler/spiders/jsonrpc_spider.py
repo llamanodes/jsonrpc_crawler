@@ -31,8 +31,7 @@ class JsonrpcSpider(scrapy.Spider):
             },
             playwright_page_methods=[
                 # TODO: what should we do? inject some javascript to connect a mock wallet/provider?
-                # TODO: waiting 10 seconds is not a good way to wait for the page to finish loading, but i think some pages will load forever
-                PageMethod("wait_for_timeout", 10 * 1000)
+                PageMethod('wait_for_load_state', state='networkidle', timeout=60 * 1000),
             ],
         )
 
