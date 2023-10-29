@@ -38,8 +38,7 @@ class JsonrpcSpider(scrapy.Spider):
                 PageMethod('add_init_script', path='preload.js'),
                 # TODO: if there is a "connect wallet" button on the page, click it
                 # TODO: timeout on this is probably a good idea, but it seems to throw an exception instead of just exiting quietly
-                PageMethod('wait_for_load_state', state='load'),
-                PageMethod('wait_for_load_state', state='networkidle', timeout=5000),
+                PageMethod('wait_for_load_state', state='networkidle', timeout=30 * 1000),
             ],
         )
 
@@ -52,17 +51,20 @@ class JsonrpcSpider(scrapy.Spider):
             "https://curve.fi/", meta=self.scrapy_meta(playwright_context="curve")
         )
         yield scrapy.Request(
+            "https://classic.curve.fi/", meta=self.scrapy_meta(playwright_context="curve classic")
+        )
+        yield scrapy.Request(
             "https://curve.fi/#/ethereum/pools/3pool/deposit", meta=self.scrapy_meta(playwright_context="curve 3pool")
         )
-        # yield scrapy.Request(
-        #     "https://www.convexfinance.com",
-        #     meta=self.scrapy_meta(playwright_context="convex"),
-        # )
+        yield scrapy.Request(
+            "https://www.convexfinance.com",
+            meta=self.scrapy_meta(playwright_context="convex"),
+        )
 
     async def parse(self, response: HtmlResponse):
         page = response.meta["playwright_page"]
 
-        # TODO: click all the things that aren't actually links but that go to other pages
+        # TODO: gather all the things that aren't actually links but still point to other pages
 
         await page.close()
 
@@ -81,6 +83,8 @@ class JsonrpcSpider(scrapy.Spider):
             links = []
 
         # TODO: `screenshot = await page.screenshot(path="example.png", full_page=True)`
+
+        return
 
         for link in links:
             if link in self.handled:
@@ -129,5 +133,5 @@ class JsonrpcSpider(scrapy.Spider):
             pass
 
     async def errback(self, failure):
-        page = failure.request.meta.get("playwright_page")
+        page = failure.request.meta["playwright_page"]
         await page.close()

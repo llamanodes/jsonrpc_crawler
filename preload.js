@@ -1,4 +1,4 @@
-console.log("This runs first");
+alert("This runs first");
 
 // Set up a stub for window.ethereum
 // This is designed to look like [MetaMask](https://docs.metamask.io/wallet/reference/provider-api/).
