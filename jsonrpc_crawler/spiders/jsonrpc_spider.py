@@ -2,10 +2,10 @@ from playwright.async_api import (
     Request as PlaywrightRequest,
     Response as PlaywrightResponse,
 )
+from scrapy_playwright.page import PageMethod
+from scrapy.http import HtmlResponse
 import scrapy
 import json
-
-# from scrapy_playwright.page import PageCoroutine
 
 
 class JsonrpcSpider(scrapy.Spider):
@@ -23,16 +23,16 @@ class JsonrpcSpider(scrapy.Spider):
 
     def scrapy_meta(self, **kwargs):
         meta = dict(
-            errback=self.errback,
+            # errback=self.errback,
             playwright=True,
-            playwright_include_page=True,
+            playwright_include_page=False,
             playwright_page_event_handlers={
                 "request": "handle_request",
-                # "response": "handle_response",  # TODO: do we want this?
             },
-            playwright_page_coroutines=[
+            playwright_page_methods=[
                 # TODO: what should we do? inject some javascript to connect a mock wallet/provider?
-                # PageCoroutine("wait_for_timeout", 30 * 1000)
+                # TODO: waiting 10 seconds is not a good way to wait for the page to finish loading, but i think some pages will load forever
+                PageMethod("wait_for_timeout", 10 * 1000)
             ],
         )
 
@@ -42,24 +42,23 @@ class JsonrpcSpider(scrapy.Spider):
 
     def start_requests(self):
         yield scrapy.Request(
-            "https://curve.fi", meta=self.scrapy_meta(playwright_context="curve")
+            "https://curve.fi/#/ethereum/pools/3pool/deposit", meta=self.scrapy_meta(playwright_context="curve")
         )
-        yield scrapy.Request(
-            "https://www.convexfinance.com",
-            meta=self.scrapy_meta(playwright_context="convex"),
-        )
+        # yield scrapy.Request(
+        #     "https://www.convexfinance.com",
+        #     meta=self.scrapy_meta(playwright_context="convex"),
+        # )
 
-    async def parse(self, response: PlaywrightResponse):
+    def parse(self, response: HtmlResponse):
         # 'response' contains the page as seen by the browser
 
-        # TODO: skip scraping non-html pages
-        # if response.content_type != "text/html":
-        #     return
+        if not response.status != 200:
+            return
 
-        # playwright_page is set when request.meta.playwright == True
-        page = response.meta["playwright_page"]
+        print(response.headers)
 
-        # TODO: if page is set, wait for the page to load? (it isn't always set. why?)
+        if response.headers["content-type"] != "text/html":
+            return
 
         try:
             # TODO: does `response` work here or do we need to parse the `page`
@@ -68,13 +67,8 @@ class JsonrpcSpider(scrapy.Spider):
             # TODO: just the one type of exception
             return
 
-        yield {"url": response.url, "page": page}
-
         for link in links:
             if link in self.handled:
-                continue
-
-            if link.endswith(".js") or link.endswith(".png"):
                 continue
 
             self.handled.add(link)
@@ -86,30 +80,34 @@ class JsonrpcSpider(scrapy.Spider):
                 playwright_context=response.meta["playwright_context"]
             )
 
+            # TODO: follow links once loading one page works fully
+            # TODO: following links should be optional
             yield response.follow(link, callback=self.parse, meta=follow_meta)
 
-    async def handle_request(self, request: PlaywrightRequest) -> None:
-        # self.logger.debug(
-        #     f"request seen: {request.resource_type, request.url, request.method}"
-        # )
-
-        if request.method == "POST" and (
-            request.resource_type == "fetch" or request.resource_type == "xhr"
-        ):
+    def handle_request(self, request: PlaywrightRequest) -> None:
+        if request.method == "POST" and request.resource_type in ["fetch", "xhr"] and "jsonrpc" in request.post_data:
             try:
                 data = request.post_data_json
             except Exception:
                 # TODO: just the one type of exception
-                return
-
-            if data is None:
-                return
-
-            if "jsonrpc" in data:
+                pass
+            else:
                 # TODO: include request.url in this so that we can tell what rpc/chain it is going to
                 # TODO: should this yield an `Item`?
+                # TODO: attach referer header
                 print(json.dumps(dict(url=request.url, data=data)))
+                return
+
+            self.logger.debug(
+                f"non-jsonrpc seen: {request.resource_type, request.url, request.method, request.post_data}"
+            )
+        else:
+            # TODO: this is too verbose
+            # self.logger.debug(
+            #     f"request ignored: {request.resource_type, request.url, request.method}"
+            # )
+            pass
 
     async def errback(self, failure):
-        page = failure.request.meta["playwright_page"]
-        await page.close()
+        if page := failure.request.meta.get("playwright_page"):
+            await page.close()
