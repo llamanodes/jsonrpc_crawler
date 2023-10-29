@@ -23,15 +23,23 @@ class JsonrpcSpider(scrapy.Spider):
 
     def scrapy_meta(self, **kwargs):
         meta = dict(
-            # errback=self.errback,
+            # TODO: we probably need to include_page so that we can click all the things that aren't actually links
+            # playwright_include_page=False,
+
+            playwright_include_page=True,
+            errback=self.errback,
+
             playwright=True,
-            playwright_include_page=False,
             playwright_page_event_handlers={
                 "request": "handle_request",
             },
             playwright_page_methods=[
-                # TODO: what should we do? inject some javascript to connect a mock wallet/provider?
-                PageMethod('wait_for_load_state', state='networkidle', timeout=60 * 1000),
+                # attach our crawler wallet and provider
+                PageMethod('add_init_script', path='preload.js'),
+                # TODO: if there is a "connect wallet" button on the page, click it
+                # TODO: timeout on this is probably a good idea, but it seems to throw an exception instead of just exiting quietly
+                PageMethod('wait_for_load_state', state='load'),
+                PageMethod('wait_for_load_state', state='networkidle', timeout=5000),
             ],
         )
 
@@ -41,22 +49,28 @@ class JsonrpcSpider(scrapy.Spider):
 
     def start_requests(self):
         yield scrapy.Request(
-            "https://curve.fi/#/ethereum/pools/3pool/deposit", meta=self.scrapy_meta(playwright_context="curve")
+            "https://curve.fi/", meta=self.scrapy_meta(playwright_context="curve")
+        )
+        yield scrapy.Request(
+            "https://curve.fi/#/ethereum/pools/3pool/deposit", meta=self.scrapy_meta(playwright_context="curve 3pool")
         )
         # yield scrapy.Request(
         #     "https://www.convexfinance.com",
         #     meta=self.scrapy_meta(playwright_context="convex"),
         # )
 
-    def parse(self, response: HtmlResponse):
-        # 'response' contains the page as seen by the browser
+    async def parse(self, response: HtmlResponse):
+        page = response.meta["playwright_page"]
 
-        if not response.status != 200:
+        # TODO: click all the things that aren't actually links but that go to other pages
+
+        await page.close()
+
+        if response.status != 200:
             return
 
-        print(response.headers)
-
-        if response.headers["content-type"] != "text/html":
+        if not response.headers[b'Content-Type'].startswith(b"text/html"):
+            self.logger.debug("skipping non html: %s", response.url)
             return
 
         try:
@@ -64,10 +78,17 @@ class JsonrpcSpider(scrapy.Spider):
             links = response.xpath("//a[@href]/@href").getall()
         except Exception:
             # TODO: just the one type of exception
-            return
+            links = []
+
+        # TODO: `screenshot = await page.screenshot(path="example.png", full_page=True)`
 
         for link in links:
             if link in self.handled:
+                continue
+
+            # TODO: do this less fragile
+            # TODO: skip images, css, js, xml, etc
+            if "gov.curve.fi" in link or "api.curve.fi" in link or "github.com" in link:
                 continue
 
             self.handled.add(link)
@@ -86,15 +107,15 @@ class JsonrpcSpider(scrapy.Spider):
     def handle_request(self, request: PlaywrightRequest) -> None:
         if request.method == "POST" and request.resource_type in ["fetch", "xhr"] and "jsonrpc" in request.post_data:
             try:
-                data = request.post_data_json
+                request_json = request.post_data_json
             except Exception:
-                # TODO: just the one type of exception
+                # TODO: catch just the one type of exception
                 pass
             else:
                 # TODO: include request.url in this so that we can tell what rpc/chain it is going to
                 # TODO: should this yield an `Item`?
                 # TODO: attach referer header
-                print(json.dumps(dict(url=request.url, data=data)))
+                print(json.dumps(dict(url=request.url, request=request_json)))
                 return
 
             self.logger.debug(
@@ -108,5 +129,5 @@ class JsonrpcSpider(scrapy.Spider):
             pass
 
     async def errback(self, failure):
-        if page := failure.request.meta.get("playwright_page"):
-            await page.close()
+        page = failure.request.meta.get("playwright_page")
+        await page.close()
