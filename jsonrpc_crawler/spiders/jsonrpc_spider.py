@@ -37,7 +37,7 @@ class JsonrpcSpider(scrapy.Spider):
                 # attach our crawler wallet and provider
                 PageMethod('add_init_script', path='preload.js'),
                 # TODO: if there is a "connect wallet" button on the page, click it
-                # TODO: timeout on this is probably a good idea, but it seems to throw an exception instead of just exiting quietly
+                # TODO: timeout on this is probably a good idea. it seems to throw an exception instead of just exiting quietly. we want a quiet exit
                 PageMethod('wait_for_load_state', state='networkidle', timeout=30 * 1000),
             ],
         )
