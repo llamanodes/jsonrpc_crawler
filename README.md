@@ -18,3 +18,4 @@ scrapy crawl jsonrpc | jq -c .request | versus https://ethereum.llamarpc.com htt
 - [ ] click "connect wallet" buttons (if any). this usually starts a lot more requests
 - [ ] helper script that replaces "latest" with a several block heights (archive number, recent number, latest as a number, and latest (the string)). then print all of the variants to stdout
 - [ ] versus complains about "mismatches" on things like slightly different error messages. allow those
+- [ ] webcrawler mode. it currently can scan for "a" links, but a lot of dapps don't use actual links. need to figure out how to find all the "clickable" things and what urls they will route to
