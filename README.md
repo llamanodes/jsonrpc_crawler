@@ -3,12 +3,17 @@ crawl dapps and extract all their jsonrpc requests
 
 ## Usage
 
-In your terminal:
+Installation:
 
 ```
 python3 -m venv venv
 . ./venv/bin/activate
 pip install -r requirements.txt
+```
+
+Run the spider:
+
+```
 scrapy crawl jsonrpc | jq -c .request | versus https://ethereum.llamarpc.com https://rpc.ankr.com/eth https://eth.drpc.org https://eth.merkle.io https://eth.meowrpc.com https://1rpc.io/eth
 ```
 
