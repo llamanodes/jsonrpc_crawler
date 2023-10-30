@@ -34,8 +34,6 @@ class JsonrpcSpider(scrapy.Spider):
             },
             playwright_page_init_callback=self.init_callback,
             playwright_page_methods=[
-                # # attach our crawler wallet and provider
-                # PageMethod('add_init_script', path='preload.js'),
                 # TODO: if there is a "connect wallet" button on the page, click it
                 # TODO: timeout on this is probably a good idea. it seems to throw an exception instead of just exiting quietly. we want a quiet exit
                 PageMethod(
@@ -49,70 +47,70 @@ class JsonrpcSpider(scrapy.Spider):
         return meta
 
     async def init_callback(self, page, request):
+        """attach our crawler wallet and provider"""
         await page.add_init_script(path="./preload.js")
 
     def start_requests(self):
         yield scrapy.Request(
             "https://curve.fi/", meta=self.scrapy_meta()
         )
-        # yield scrapy.Request(
-        #     "https://classic.curve.fi/", meta=self.scrapy_meta()
-        # )
-        # yield scrapy.Request(
-        #     "https://curve.fi/#/ethereum/pools/3pool/deposit", meta=self.scrapy_meta()
-        # )
-        # yield scrapy.Request(
-        #     "https://www.convexfinance.com",
-        #     meta=self.scrapy_meta(),
-        # )
+        yield scrapy.Request(
+            "https://classic.curve.fi/", meta=self.scrapy_meta()
+        )
+        yield scrapy.Request(
+            "https://curve.fi/#/ethereum/pools/3pool/deposit", meta=self.scrapy_meta()
+        )
+        yield scrapy.Request(
+            "https://www.convexfinance.com",
+            meta=self.scrapy_meta(),
+        )
 
     async def parse(self, response: HtmlResponse):
         page = response.meta["playwright_page"]
 
-        # TODO: gather all the things that aren't actually links but still point to other pages
-
-        if response.status != 200:
-            await page.close()
-            return
-
-        if not response.headers[b"Content-Type"].startswith(b"text/html"):
-            self.logger.debug("skipping non html: %s", response.url)
-            await page.close()
-            return
-
         try:
-            # TODO: does `response` work here or do we need to parse the `page`
-            # links = response.xpath("//a[@href]/@href").getall()
-            links = []
-        except Exception:
-            # TODO: just the one type of exception
-            links = []
+            # TODO: gather all the things that aren't actually links but still point to other pages
 
-        # TODO: `screenshot = await page.screenshot(path="example.png", full_page=True)`
+            if response.status != 200:
+                return
 
-        for link in links:
-            if link in self.handled:
-                continue
+            if not response.headers[b"Content-Type"].startswith(b"text/html"):
+                self.logger.debug("skipping non html: %s", response.url)
+                return
 
-            # TODO: do this less fragile. can we re-use the allowed_domains check?
-            # TODO: skip images, css, js, xml, etc
-            if "gov.curve.fi" in link or "api.curve.fi" in link or "github.com" in link:
-                continue
+            try:
+                # TODO: does `response` work here or do we need to parse the `page`
+                # TODO: following links should be optional
+                # links = response.xpath("//a[@href]/@href").getall()
+                links = []
+            except Exception:
+                # TODO: just the one type of exception
+                links = []
 
-            self.handled.add(link)
+            # TODO: `screenshot = await page.screenshot(path="example.png", full_page=True)`
 
-            # TODO: do some extra filtering on these links? i think scrapy handles enough for us with self.allowed_domains
-            self.logger.debug("following link on %s: %s", response.request.url, link)
+            for link in links:
+                if link in self.handled:
+                    continue
 
-            follow_meta = self.scrapy_meta(
-                playwright_page=page,
-            )
+                # TODO: do this less fragile. can we re-use the allowed_domains check?
+                # TODO: skip images, css, js, xml, etc
+                if "gov.curve.fi" in link or "api.curve.fi" in link or "github.com" in link:
+                    continue
 
-            # TODO: follow links once loading one page works fully
-            # TODO: following links should be optional
-            yield response.follow(link, callback=self.parse, meta=follow_meta)
+                self.handled.add(link)
 
-        await page.close()
+                # TODO: do some extra filtering on these links? i think scrapy handles enough for us with self.allowed_domains
+                self.logger.debug("following link on %s: %s", response.request.url, link)
+
+                # re-use the page
+                follow_meta = self.scrapy_meta(
+                    playwright_page=page,
+                )
+
+                yield response.follow(link, callback=self.parse, meta=follow_meta)
+        finally:
+            await page.close()
 
     async def handle_console(self, msg):
         self.logger.info("console.log: %s", msg)
