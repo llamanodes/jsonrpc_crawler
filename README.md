@@ -15,6 +15,105 @@ scrapy crawl jsonrpc | jq -c .request | versus https://ethereum.llamarpc.com htt
 Example output starts with a bunch of debug logs that don't matter so much.
 
 ```
+2023-10-29 21:49:57 [scrapy.utils.log] INFO: Scrapy 2.11.0 started (bot: jsonrpc_crawler)
+2023-10-29 21:49:57 [scrapy.utils.log] INFO: Versions: lxml 4.9.3.0, libxml2 2.9.4, cssselect 1.2.0, parsel 1.8.1, w3lib 2.1.2, Twisted 22.10.0, Python 3.9.16 (main, Mar 16 2023, 14:22:29) - [Clang 14.0.0 (clang-1400.0.29.202)], pyOpenSSL 23.3.0 (OpenSSL 3.1.4 24 Oct 2023), cryptography 41.0.5, Platform macOS-12.6.5-arm64-arm-64bit
+2023-10-29 21:49:57 [scrapy.addons] INFO: Enabled addons:
+[]
+2023-10-29 21:49:57 [asyncio] DEBUG: Using selector: KqueueSelector
+2023-10-29 21:49:57 [scrapy.utils.log] DEBUG: Using reactor: twisted.internet.asyncioreactor.AsyncioSelectorReactor
+2023-10-29 21:49:57 [scrapy.utils.log] DEBUG: Using asyncio event loop: asyncio.unix_events._UnixSelectorEventLoop
+2023-10-29 21:49:57 [scrapy.extensions.telnet] INFO: Telnet Password: f1aab41d912ec7ff
+2023-10-29 21:49:57 [scrapy.middleware] INFO: Enabled extensions:
+['scrapy.extensions.corestats.CoreStats',
+ 'scrapy.extensions.telnet.TelnetConsole',
+ 'scrapy.extensions.memusage.MemoryUsage',
+ 'scrapy.extensions.logstats.LogStats']
+2023-10-29 21:49:57 [scrapy.crawler] INFO: Overridden settings:
+{'BOT_NAME': 'jsonrpc_crawler',
+ 'FEED_EXPORT_ENCODING': 'utf-8',
+ 'NEWSPIDER_MODULE': 'jsonrpc_crawler.spiders',
+ 'REQUEST_FINGERPRINTER_IMPLEMENTATION': '2.7',
+ 'ROBOTSTXT_OBEY': True,
+ 'SPIDER_MODULES': ['jsonrpc_crawler.spiders'],
+ 'TWISTED_REACTOR': 'twisted.internet.asyncioreactor.AsyncioSelectorReactor',
+ 'USER_AGENT': 'jsonrpc_crawler (+https://www.llamanodes.com)'}
+2023-10-29 21:49:57 [scrapy.middleware] INFO: Enabled downloader middlewares:
+['scrapy.downloadermiddlewares.robotstxt.RobotsTxtMiddleware',
+ 'scrapy.downloadermiddlewares.httpauth.HttpAuthMiddleware',
+ 'scrapy.downloadermiddlewares.downloadtimeout.DownloadTimeoutMiddleware',
+ 'scrapy.downloadermiddlewares.defaultheaders.DefaultHeadersMiddleware',
+ 'scrapy.downloadermiddlewares.useragent.UserAgentMiddleware',
+ 'scrapy.downloadermiddlewares.retry.RetryMiddleware',
+ 'scrapy.downloadermiddlewares.redirect.MetaRefreshMiddleware',
+ 'scrapy.downloadermiddlewares.httpcompression.HttpCompressionMiddleware',
+ 'scrapy.downloadermiddlewares.redirect.RedirectMiddleware',
+ 'scrapy.downloadermiddlewares.cookies.CookiesMiddleware',
+ 'scrapy.downloadermiddlewares.httpproxy.HttpProxyMiddleware',
+ 'scrapy.downloadermiddlewares.stats.DownloaderStats']
+2023-10-29 21:49:57 [scrapy.middleware] INFO: Enabled spider middlewares:
+['scrapy.spidermiddlewares.httperror.HttpErrorMiddleware',
+ 'scrapy.spidermiddlewares.offsite.OffsiteMiddleware',
+ 'scrapy.spidermiddlewares.referer.RefererMiddleware',
+ 'scrapy.spidermiddlewares.urllength.UrlLengthMiddleware',
+ 'scrapy.spidermiddlewares.depth.DepthMiddleware']
+2023-10-29 21:49:57 [scrapy.middleware] INFO: Enabled item pipelines:
+[]
+2023-10-29 21:49:57 [scrapy.core.engine] INFO: Spider opened
+2023-10-29 21:49:57 [scrapy.extensions.logstats] INFO: Crawled 0 pages (at 0 pages/min), scraped 0 items (at 0 items/min)
+2023-10-29 21:49:57 [scrapy.extensions.telnet] INFO: Telnet console listening on 127.0.0.1:6023
+2023-10-29 21:49:57 [scrapy-playwright] INFO: Starting download handler
+2023-10-29 21:49:57 [scrapy-playwright] INFO: Starting download handler
+2023-10-29 21:50:02 [scrapy.dupefilters] DEBUG: Filtered duplicate request: <GET https://curve.fi/#/ethereum/pools/3pool/deposit> - no more duplicates will be shown (see DUPEFILTER_DEBUG to show all duplicates)
+2023-10-29 21:50:02 [scrapy.core.engine] DEBUG: Crawled (404) <GET https://www.convexfinance.com/robots.txt> (referer: None)
+2023-10-29 21:50:02 [protego] DEBUG: Rule at line 1 without any user agent to enforce it on.
+2023-10-29 21:50:02 [scrapy-playwright] INFO: Launching browser chromium
+2023-10-29 21:50:02 [scrapy.core.engine] DEBUG: Crawled (200) <GET https://classic.curve.fi/robots.txt> (referer: None)
+2023-10-29 21:50:02 [scrapy.core.engine] DEBUG: Crawled (404) <GET https://curve.fi/robots.txt> (referer: None)
+2023-10-29 21:50:02 [protego] DEBUG: Rule at line 7 without any user agent to enforce it on.
+2023-10-29 21:50:02 [protego] DEBUG: Rule at line 11 without any user agent to enforce it on.
+2023-10-29 21:50:02 [scrapy-playwright] INFO: Browser chromium launched
+2023-10-29 21:50:02 [scrapy-playwright] DEBUG: Browser context started: 'default' (persistent=False, remote=False)
+2023-10-29 21:50:02 [scrapy-playwright] DEBUG: [Context=default] New page created, page count is 1 (1 for all contexts)
+2023-10-29 21:50:02 [scrapy-playwright] DEBUG: [Context=default] New page created, page count is 2 (2 for all contexts)
+2023-10-29 21:50:02 [scrapy-playwright] DEBUG: [Context=default] New page created, page count is 3 (3 for all contexts)
+2023-10-29 21:50:02 [scrapy-playwright] DEBUG: [Context=default] Request: <GET https://www.convexfinance.com/> (resource type: document)
+2023-10-29 21:50:02 [scrapy-playwright] DEBUG: [Context=default] Request: <GET https://curve.fi/> (resource type: document)
+2023-10-29 21:50:02 [scrapy-playwright] DEBUG: [Context=default] Request: <GET https://classic.curve.fi/> (resource type: document)
+2023-10-29 21:50:02 [scrapy-playwright] DEBUG: [Context=default] Response: <200 https://classic.curve.fi/>
+2023-10-29 21:50:02 [scrapy-playwright] DEBUG: [Context=default] Response: <200 https://www.convexfinance.com/>
+
+...
+
+2023-10-29 21:51:10 [scrapy.core.scraper] ERROR: Error downloading <GET https://curve.fi/>
+Traceback (most recent call last):
+  File "/Users/bryan/.pyenv/versions/3.9.16/lib/python3.9/site-packages/twisted/internet/defer.py", line 1693, in _inlineCallbacks
+    result = context.run(
+  File "/Users/bryan/.pyenv/versions/3.9.16/lib/python3.9/site-packages/twisted/python/failure.py", line 518, in throwExceptionIntoGenerator
+    return g.throw(self.type, self.value, self.tb)
+  File "/Users/bryan/.pyenv/versions/3.9.16/lib/python3.9/site-packages/scrapy/core/downloader/middleware.py", line 54, in process_request
+    return (yield download_func(request=request, spider=spider))
+  File "/Users/bryan/.pyenv/versions/3.9.16/lib/python3.9/site-packages/twisted/internet/defer.py", line 1065, in adapt
+    extracted = result.result()
+  File "/Users/bryan/.pyenv/versions/3.9.16/lib/python3.9/site-packages/scrapy_playwright/handler.py", line 324, in _download_request
+    return await self._download_request_with_page(request, page, spider)
+  File "/Users/bryan/.pyenv/versions/3.9.16/lib/python3.9/site-packages/scrapy_playwright/handler.py", line 372, in _download_request_with_page
+    await self._apply_page_methods(page, request, spider)
+  File "/Users/bryan/.pyenv/versions/3.9.16/lib/python3.9/site-packages/scrapy_playwright/handler.py", line 485, in _apply_page_methods
+    pm.result = await _maybe_await(method(*pm.args, **pm.kwargs))
+  File "/Users/bryan/.pyenv/versions/3.9.16/lib/python3.9/site-packages/scrapy_playwright/_utils.py", line 16, in _maybe_await
+    return await obj
+  File "/Users/bryan/.pyenv/versions/3.9.16/lib/python3.9/site-packages/playwright/async_api/_generated.py", line 9358, in wait_for_load_state
+    await self._impl_obj.wait_for_load_state(state=state, timeout=timeout)
+  File "/Users/bryan/.pyenv/versions/3.9.16/lib/python3.9/site-packages/playwright/_impl/_page.py", line 489, in wait_for_load_state
+    return await self._main_frame.wait_for_load_state(**locals_to_params(locals()))
+  File "/Users/bryan/.pyenv/versions/3.9.16/lib/python3.9/site-packages/playwright/_impl/_frame.py", line 236, in wait_for_load_state
+    return await self._wait_for_load_state_impl(state, timeout)
+  File "/Users/bryan/.pyenv/versions/3.9.16/lib/python3.9/site-packages/playwright/_impl/_frame.py", line 264, in _wait_for_load_state_impl
+    await wait_helper.result()
+playwright._impl._api_types.TimeoutError: Timeout 30000ms exceeded.
+
+...
+
 ```
 
 Then it sits and waits for all the rpcs to finish responding. You will have to wait for the slowest rpc, so you might want to skip some of the weaker free rpcs. Eventually it will print out something like this:
